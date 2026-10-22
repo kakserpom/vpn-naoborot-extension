@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "VPN Наоборот – ВПН с российским IP",
+  "description": "VPN с российским IP для Госуслуг, Кинопоиска, Налоговой и других российских сайтов. Поддерживает выборочное проксирование: можно проксировать только нужные сайты, а остальные оставить напрямую.",
+  "version": "5.0.9",
+  "icons": {
+    "128": "icon-128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "alarms",
+    "proxy",
+    "storage",
+    "webRequest",
+    "webRequestAuthProvider"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{89d1c5d0-64bd-4998-bc5a-ad6a3882dac5}"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "VPN Наоборот",
+    "default_popup": "popup.html"
+  }
+}

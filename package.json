@@ -1,0 +1,32 @@
+{
+  "name": "vpn-naoborot-extension",
+  "private": true,
+  "version": "5.0.0",
+  "type": "module",
+  "description": "Расширение «VPN Наоборот» — лёгкая переработка на SolidJS с выборочным проксированием сайтов",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && npm run build:popup && npm run build:background",
+    "build:popup": "vite build",
+    "build:background": "vite build --config vite.config.background.ts",
+    "build:firefox": "npm run build && node scripts/manifest-firefox.mjs",
+    "version:bump": "node scripts/bump-version.mjs",
+    "pack": "npm run version:bump && npm run build && npm run pack:crx",
+    "pack:crx": "\"${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" --pack-extension=\"$PWD/dist\" --pack-extension-key=\"$PWD/crx-key.pem\" --no-first-run --no-default-browser-check",
+    "typecheck": "tsc --noEmit",
+    "test": "node test/run.mjs test/rules.test.ts && node test/run.mjs test/api.test.ts && node test/background.test.mjs && node test/popup.test.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "solid-js": "^1.9.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.11",
+    "@types/chrome": "^0.3.6",
+    "jsdom": "^30.1.3",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.9.2",
+    "vite": "^7.0.0",
+    "vite-plugin-solid": "^2.11.6"
+  }
+}
