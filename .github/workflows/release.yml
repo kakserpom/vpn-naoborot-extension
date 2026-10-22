@@ -67,22 +67,12 @@ jobs:
           (cd dist && zip -qr "../vpn-naoborot-firefox-${GITHUB_REF_NAME#v}.zip" .)
 
       - name: GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ github.ref_name }}
-          files: |
-            VPN Наоборот – ВПН с российским IP *
-            vpn-naoborot-firefox-*
-          generate_release_notes: true
-          body: |
-            ## Установка в Chrome
-            1. Скачайте `VPN Наоборот – ВПН с российским IP …crx`
-            2. Откройте `chrome://extensions`
-            3. Перетащите CRX-файл на страницу расширений
-
-            ## Установка в Firefox
-            1. Скачайте архив `vpn-naoborot-firefox-…zip` и распакуйте
-            2. Откройте `about:debugging#/runtime/this-firefox`
-            3. «Load Temporary Add-on…» → выберите `manifest.json` из архива
-
-            Правки и тесты: см. README.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            "VPN Наоборот – ВПН с российским IP $VERSION.crx" \
+            "vpn-naoborot-firefox-$VERSION.zip"
