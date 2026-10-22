@@ -2,3 +2,5 @@ node_modules
 dist
 test/.tmp
 crx-key.pem
+dist.crx
+.idea/

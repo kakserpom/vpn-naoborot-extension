@@ -1,0 +1,43 @@
+# CI: тесты и сборка на каждый push и pull request.
+# CRX здесь не подписывается — приватный ключ подписи живёт в секрете CRX_PEM
+# и восстанавливается только релизным воркфлоу (release.yml).
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Зависимости
+        run: npm ci
+
+      - name: Тесты
+        run: npm test
+
+      - name: Сборка (Chrome-манифест)
+        run: npm run build
+
+      - name: Артефакт (unpacked dist)
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-unpacked
+          path: dist
+          retention-days: 14
+
+      - name: Сборка (Firefox-манифест)
+        run: npm run build:firefox
