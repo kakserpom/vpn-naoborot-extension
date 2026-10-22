@@ -56,7 +56,7 @@ jobs:
           CHROME="$CHROME" npm run pack:crx
 
       - name: Переименование CRX
-        run: mv dist.crx "VPN Наоборот – ВПН с российским IP ${GITHUB_REF_NAME#v}.crx"
+        run: mv dist.crx "vpn-naoborot-${GITHUB_REF_NAME#v}.crx"
 
       - name: Сборка Firefox-сборки
         run: npm run build:firefox
@@ -74,5 +74,5 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
             --generate-notes \
-            "VPN Наоборот – ВПН с российским IP $VERSION.crx" \
+            "vpn-naoborot-$VERSION.crx" \
             "vpn-naoborot-firefox-$VERSION.zip"
