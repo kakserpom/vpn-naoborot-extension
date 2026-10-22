@@ -22,6 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # полная история нужна для changelog между тегами
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -58,6 +61,9 @@ jobs:
       - name: Переименование CRX
         run: mv dist.crx "vpn-naoborot-${GITHUB_REF_NAME#v}.crx"
 
+      - name: Архив Chrome (распакованный вариант)
+        run: (cd dist && zip -qr "../vpn-naoborot-chrome-${GITHUB_REF_NAME#v}.zip" .)
+
       - name: Сборка Firefox-сборки
         run: npm run build:firefox
 
@@ -66,6 +72,31 @@ jobs:
           rm -f crx-key.pem
           (cd dist && zip -qr "../vpn-naoborot-firefox-${GITHUB_REF_NAME#v}.zip" .)
 
+      - name: Заметки релиза
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PREV_TAG="$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)"
+          {
+            echo "## Установка"
+            echo
+            echo "**Chrome/Edge** (рекомендуется): распакуйте \`vpn-naoborot-chrome-$VERSION.zip\`,"
+            echo "\`chrome://extensions\` → «Режим разработчика» → «Загрузить распакованное расширение»."
+            echo "Перетаскивать CRX-файл не нужно: Chrome разрешает ставить CRX только из Chrome Web Store"
+            echo "(иначе ошибка \`CRX_REQUIRED_PROOF_MISSING\`). CRX-файл в релизе — для публикации"
+            echo "в Chrome Web Store и установки через корпоративную политику \`ExtensionInstallForcelist\`."
+            echo
+            echo "**Firefox**: \`about:debugging#/runtime/this-firefox\` → «Загрузить временное дополнение…»"
+            echo "→ \`manifest.json\` из \`vpn-naoborot-firefox-$VERSION.zip\`."
+            echo
+            echo "## Изменения"
+            echo
+            if [ -n "$PREV_TAG" ]; then
+              git log --oneline "$PREV_TAG..$GITHUB_REF_NAME" | sed 's/^/- /'
+            else
+              echo "- первый релиз"
+            fi
+          } > NOTES.md
+
       - name: GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -73,6 +104,7 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
-            --generate-notes \
+            --notes-file NOTES.md \
             "vpn-naoborot-$VERSION.crx" \
+            "vpn-naoborot-chrome-$VERSION.zip" \
             "vpn-naoborot-firefox-$VERSION.zip"

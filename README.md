@@ -143,8 +143,15 @@ npm run build      # tsc --noEmit + popup + background -> dist/
 ```
 
 Готовую папку `dist/` можно загрузить в браузер:
-* Chrome/Edge — `chrome://extensions` → «Загрузить распакованное расширение» → папка `dist`;
+* Chrome/Edge — `chrome://extensions` → «Режим разработчика» → «Загрузить
+  распакованное расширение» → папка `dist`;
 * Firefox — `about:debugging` → «Загрузить временное дополнение» → `dist/manifest.json`.
+
+Для установки без локальной сборки скачайте zip из актуального релиза
+(страница «Releases» репозитория): `vpn-naoborot-chrome-*.zip` — для Chrome/Edge,
+`vpn-naoborot-firefox-*.zip` — для Firefox, и повторите те же шаги с распакованной
+папкой. CRX-файл напрямую установить нельзя — Chrome принимает CRX только из
+Chrome Web Store (подробнее: «Сборка CRX» выше).
 
 Для разработки: `npm run dev` (Vite), сборка фона отдельно — `npm run build:background`.
 
@@ -182,11 +189,23 @@ npm run pack
   работать. Файл добавлен в `.gitignore`, поэтому в CI он восстанавливается
   из секрета `CRX_PEM` (см. раздел «Релизы и CI»).
 
-Установка CRX: перетащите файл в окно `chrome://extensions` (или
-`chrome://extensions` → «Загрузить расширение»). Для Chrome/Edge и сборок,
-пришедших не из магазина, может потребоваться режим разработчика.
+### Почему CRX «не устанавливается» (`CRX_REQUIRED_PROOF_MISSING`)
 
-Артефакт: `dist.crx`. Оформленный релиз с CRX собирает воркфлоу Release (см. ниже).
+Начиная с Chrome 33, браузер разрешает установку CRX-файлов **только из Chrome
+Web Store** — при попытке открыть сторонний CRX двойным кликом или перетащить
+его в `chrome://extensions` появится ошибка `CRX_REQUIRED_PROOF_MISSING`.
+Это политика Chrome, а не дефект файла. Поэтому основной способ установки —
+распакованная папка (см. «Сборка и запуск» и zip-артефакты релиза).
+
+CRX-файл при этом нужен для двух сценариев:
+
+* публикация в Chrome Web Store — магазин принимает наш CRX, ключ (`crx-key.pem`)
+  и ID расширения сохраняются;
+* установка через корпоративную политику `ExtensionInstallForcelist` (управляемые
+  Chrome-браузеры в организации).
+
+Артефакт локальной сборки: `dist.crx`. Оформленный релиз собирает воркфлоу
+Release (см. ниже).
 
 ## Релизы и CI
 
@@ -204,17 +223,30 @@ Firefox-манифест), распакованный `dist/` выкладыва
 2. ключ подписи `crx-key.pem` восстанавливается из секрета `CRX_PEM`;
 3. версия в манифесте берётся из тега (`scripts/set-version.mjs`), без bump;
 4. сборка и упаковка CRX штатным Chrome раннера;
-5. отдельная Firefox-сборка (`build:firefox`) и её zip;
-6. GitHub Release: CRX и zip для Firefox, changelog генерируется из коммитов.
+5. zip распакованной сборки для Chrome (основной способ установки);
+6. отдельная Firefox-сборка (`build:firefox`) и её zip;
+7. GitHub Release с тремя артефактами (имена ASCII — GitHub API искажает
+   юникод-имена файлов) и заметками: инструкция по установке + changelog
+   из коммитов между тегами.
+
+Артефакты релиза `vX.Y.Z`:
+
+* `vpn-naoborot-X.Y.Z.crx` — подписанный CRX (для Web Store / политики);
+* `vpn-naoborot-chrome-X.Y.Z.zip` — распакованная сборка для Chrome/Edge;
+* `vpn-naoborot-firefox-X.Y.Z.zip` — сборка для Firefox.
 
 Настройка секрета (Settings → Secrets and variables → Actions → New repository secret):
 
 * имя: `CRX_PEM`;
 * значение: base64 ключа — `base64 -i crx-key.pem | pbcopy` (macOS).
 
-Первый релиз: тег должен совпадать с версией манифеста, например `v5.0.9`
-(`node scripts/set-version.mjs 5.0.9` уже выставил версию в 5.0.9 — CRX из релиза
-будет называется `VPN Наоборот – ВПН с российским IP 5.0.9.crx`).
+Первый релиз: тег должен совпадать с версией манифеста, например `v5.0.9`.
+
+Новый релиз — просто тег:
+
+```bash
+git tag v5.0.10 && git push origin v5.0.10
+```
 
 ## Тесты
 
